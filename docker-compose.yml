@@ -1,0 +1,59 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: ai-crm-backend
+
+    ports:
+      - "5000:5000"
+
+    env_file:
+      - ./backend/.env
+
+    environment:
+      MONGO_URI: mongodb://mongo:27017/ai_crm?replicaSet=rs0
+      REDIS_URL: redis://redis:6379
+
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+    depends_on:
+     - mongo
+     - redis
+
+    restart: unless-stopped
+
+
+  mongo:
+    image: mongo:8
+
+    container_name: ai-crm-mongo
+
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+
+    ports:
+      - "27018:27017"
+
+    volumes:
+      - mongo_data:/data/db
+
+    restart: unless-stopped
+
+  redis: 
+    image: redis:7
+    container_name : ai-crm-redis
+
+    ports:
+      - "6379:6379"
+
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+
+
+      
