@@ -8,6 +8,7 @@ const redis = require("./src/config/redis")
 const connectDB = require("./src/config/db")
 const router = require("./src/routes/authRoutes")
 const leadRouter = require("./src/routes/leadRoutes")
+const memberRouter = require("./src/routes/memberRoutes");
 
 dotenv.config()
 
@@ -26,6 +27,7 @@ app.use(
 
 app.use("/api/auth", router)
 app.use("/api/leads", leadRouter)
+app.use("/api/members", memberRouter);
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, ()=>{
