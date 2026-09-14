@@ -16,11 +16,6 @@ const userSchema = new mongoose.Schema({
         required :true,
         select: false
     },
-    role : {
-        type : String,
-        enum: ["owner","manager", "member"],
-        default: "owner"
-    },
     organizationId : {
         type : mongoose.Schema.Types.ObjectId,
         ref : "Organization"

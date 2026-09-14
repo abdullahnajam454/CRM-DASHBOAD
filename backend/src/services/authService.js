@@ -1,57 +1,140 @@
-const user = require("../models/User")
-const organization = require("../models/Organization")
-const bcrypt = require("bcrypt")
-const mongoose = require("mongoose")
+const User = require("../models/User");
+const Organization = require("../models/Organization");
+const OrganizationMember = require("../models/OrganizationMember");
 
-const registerUser = async (name, email, password) => {
+const bcrypt = require("bcrypt");
+const mongoose = require("mongoose");
+
+
+const registerUser = async (
+    name,
+    email,
+    password
+) => {
 
     if (!name || !email || !password) {
-        throw new Error("All field must be required")
+        throw new Error("All fields are required");
     }
 
-    const session = await mongoose.startSession()
 
-    try{
+    const session = await mongoose.startSession();
 
-    session.startTransaction()
+    try {
 
-    const isExist = await user.findOne({ email }).session(session)
-    if (isExist) {
-        throw new Error("Email already exist")
+        session.startTransaction();
+
+
+        // 1. Check existing user
+        const existingUser = await User
+            .findOne({ email })
+            .session(session);
+
+        if (existingUser) {
+            throw new Error("Email already exists");
+        }
+
+
+        // 2. Hash password
+        const hashedPassword =
+            await bcrypt.hash(password, 10);
+
+
+        // 3. Create user
+        const users = await User.create(
+            [
+                {
+                    name,
+                    email,
+                    password: hashedPassword
+                }
+            ],
+            { session }
+        );
+
+        const newUser = users[0];
+
+
+        // 4. Create organization
+        const organizations =
+            await Organization.create(
+                [
+                    {
+                        name: `${name}'s Organization`,
+
+                        slug:
+                            `${name
+                                .toLowerCase()
+                                .replace(/\s+/g, "-")
+                            }-${newUser._id}`,
+
+                        createdBy: newUser._id
+                    }
+                ],
+                { session }
+            );
+
+        const newOrganization =
+            organizations[0];
+
+
+        // 5. Connect user with organization
+        newUser.organizationId =
+            newOrganization._id;
+
+        await newUser.save({ session });
+
+
+        // 6. Create organization membership
+        await OrganizationMember.create(
+            [
+                {
+                    userId: newUser._id,
+
+                    organizationId:
+                        newOrganization._id,
+
+                    role: "owner",
+
+                    permissions: {
+                        viewLeads: true,
+                        createLeads: true,
+                        updateLeads: true,
+                        deleteLeads: true,
+                        manageMembers: true
+                    }
+                }
+            ],
+            { session }
+        );
+
+
+        // 7. Commit transaction
+        await session.commitTransaction();
+
+
+        // Don't return password
+        newUser.password = undefined;
+
+
+        return {
+            user: newUser,
+            organization: newOrganization
+        };
+
+
+    } catch (error) {
+
+        await session.abortTransaction();
+
+        throw error;
+
+    } finally {
+
+        await session.endSession();
     }
+};
 
-    const hashPassword = await bcrypt.hash(password, 10)
-    const newuser = await user.create(
-        [{
-        name,
-        email,
-        password: hashPassword
-    }],
-    {session}
-)
 
-    const newOrganization = await organization.create(
-        [{
-        name: `${name}'s Organization`,
-        slug: `${name.toLowerCase().replace(/\s+/g, "-")}-${newuser[0]._id}`,
-        createdBy: newuser[0]._id
-    }],{session}
-)
-
-    newuser[0].organizationId = newOrganization[0]._id;
-    await newuser[0].save({session})
-
-    await session.commitTransaction()
-
-    newuser[0].password = undefined
-    return { newuser:newuser[0], newOrganization:newOrganization[0] }
-    }
-    catch(error){
-        await session.abortTransaction()
-        throw error
-    }finally{
-        await session.endSession()
-    }
-}
-
-module.exports = { registerUser }
+module.exports = {
+    registerUser
+};
