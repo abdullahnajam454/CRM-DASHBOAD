@@ -22,8 +22,8 @@ services:
       - /app/node_modules
 
     depends_on:
-     - mongo
-     - redis
+      - mongo
+      - redis
 
     restart: unless-stopped
 
@@ -33,27 +33,31 @@ services:
 
     container_name: ai-crm-mongo
 
-    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    command:
+      - mongod
+      - --replSet
+      - rs0
+      - --bind_ip_all
 
     ports:
-      - "27018:27017"
+      - "27017:27017"
 
     volumes:
       - mongo_data:/data/db
 
     restart: unless-stopped
 
-  redis: 
+
+  redis:
     image: redis:7
-    container_name : ai-crm-redis
+
+    container_name: ai-crm-redis
 
     ports:
       - "6379:6379"
 
     restart: unless-stopped
 
+
 volumes:
   mongo_data:
-
-
-      
