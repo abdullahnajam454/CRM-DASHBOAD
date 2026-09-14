@@ -348,10 +348,13 @@ const deleteMember = async (
     );
 
 
-    // Delete user too
-    await User.findByIdAndDelete(
-        targetMember.userId
-    );
+    const remainingMemberships = await OrganizationMember.countDocuments({
+        userId: targetMember.userId
+    });
+
+    if (remainingMemberships === 0) {
+        await User.findByIdAndDelete(targetMember.userId);
+    }
 
 
     return targetMember;

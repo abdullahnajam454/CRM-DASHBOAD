@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
+const OrganizationMember = require("../models/OrganizationMember");
 
 
-const isLoggedIn = (req, res, next) => {
+const isLoggedIn = async (req, res, next) => {
 
     try {
 
@@ -34,6 +35,21 @@ const isLoggedIn = (req, res, next) => {
 
         req.role =
             decoded.role;
+
+        const membership = await OrganizationMember.findOne({
+            userId: decoded.userId,
+            organizationId: decoded.organizationId
+        }).select("role permissions");
+
+        if (!membership) {
+            return res.status(403).json({
+                message: "Organization membership not found",
+                success: false
+            });
+        }
+
+        req.role = membership.role;
+        req.permissions = membership.permissions;
 
 
         next();

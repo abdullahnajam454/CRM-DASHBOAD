@@ -4,13 +4,13 @@ const cookieParser = require("cookie-parser")
 const cors = require("cors")
 
 const dotenv = require("dotenv")
+dotenv.config({ quiet: true })
+
 const redis = require("./src/config/redis")
 const connectDB = require("./src/config/db")
 const router = require("./src/routes/authRoutes")
 const leadRouter = require("./src/routes/leadRoutes")
 const memberRouter = require("./src/routes/memberRoutes");
-
-dotenv.config()
 
 connectDB()
 

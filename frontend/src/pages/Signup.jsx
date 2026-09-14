@@ -8,8 +8,7 @@ const Signup = () => {
     const [formData, setFormData] = useState({
         name: "",
         email: "",
-        password: "",
-        role: "user"
+        password: ""
     });
 
     const [message, setMessage] = useState("");
@@ -57,7 +56,7 @@ const Signup = () => {
             if (!response.ok) {
 
                 throw new Error(
-                    data.error || "Registration failed"
+                    data.error || data.message || "Registration failed"
                 );
 
             }

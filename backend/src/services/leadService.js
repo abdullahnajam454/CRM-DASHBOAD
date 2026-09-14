@@ -1,6 +1,7 @@
 const Lead = require("../models/Lead")
 const mongoose = require("mongoose")
 
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
 const createLead = async (leadData, organizationId) => {
 
@@ -28,10 +29,20 @@ const getLeadById = async (leadId, organizationId) => {
 
 const updateLead = async (leadId, organizationId, leadData) => {
 
+    const allowedFields = [
+        "name", "email", "phone", "company", "source", "stage",
+        "priority", "dealValue"
+    ];
+    const safeLeadData = Object.fromEntries(
+        allowedFields
+            .filter((field) => leadData[field] !== undefined)
+            .map((field) => [field, leadData[field]])
+    );
+
     const updatedLead = await Lead.findOneAndUpdate({
         _id: leadId,
         organizationId: organizationId
-    }, leadData, { new: true, runValidators: true })
+    }, safeLeadData, { new: true, runValidators: true })
 
     if (!updatedLead) {
         throw new Error("Lead not found or you are not the owner");
@@ -62,10 +73,11 @@ const searchAndFilterLeads = async (organizationId, queryParams) => {
     }
 
     if (search) {
+        const safeSearch = escapeRegex(String(search).slice(0, 100))
         filter.$or = [
-            { name: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-            { company: { $regex: search, $options: "i" } }
+            { name: { $regex: safeSearch, $options: "i" } },
+            { email: { $regex: safeSearch, $options: "i" } },
+            { company: { $regex: safeSearch, $options: "i" } }
         ]
     }
 
@@ -81,12 +93,13 @@ const searchAndFilterLeads = async (organizationId, queryParams) => {
         filter.source = source
     }
 
-    const pageNumber = Number(page)
-    const limitNumber = Number(limit)
+    const pageNumber = Math.max(1, Number.isFinite(Number(page)) ? Number(page) : 1)
+    const limitNumber = Math.min(100, Math.max(1, Number.isFinite(Number(limit)) ? Number(limit) : 10))
     const skip = (pageNumber - 1) * limitNumber
     const sortOrder = order === "asc" ? 1 : -1
 
-    const sort = { [sortBy]: sortOrder }
+    const allowedSortFields = ["createdAt", "name", "company", "dealValue", "stage", "priority"]
+    const sort = { [allowedSortFields.includes(sortBy) ? sortBy : "createdAt"]: sortOrder }
 
 
     const leads = await Lead.find(filter)

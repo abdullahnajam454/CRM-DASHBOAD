@@ -23,15 +23,20 @@ const Dashboard = () => {
 
                 const data = await response.json();
 
+                if (response.status === 401 || response.status === 403) {
+                    sessionStorage.removeItem("crm-authenticated");
+                    window.location.assign("/login");
+                    return;
+                }
 
                 if (!response.ok) {
                     throw new Error(
-                        data.error || "Failed to fetch stats"
+                        data.error || data.message || "Failed to fetch stats"
                     );
                 }
 
 
-                setStats(data);
+                setStats(data.stats || data);
 
             } catch (error) {
 

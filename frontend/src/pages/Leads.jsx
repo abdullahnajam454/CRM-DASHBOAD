@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 
 const Leads = () => {
-  const [leads, setLeads] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [leads, setLeads] = useState(null);
   const [message, setMessage] = useState("");
 
   const fetchLeads = async () => {
     try {
-      setLoading(true);
-
       const response = await fetch("http://localhost:5000/api/leads", {
         method: "GET",
         credentials: "include",
@@ -17,16 +14,16 @@ const Leads = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(data.message || "Failed to fetch leads");
+        setMessage(data.error || data.message || "Failed to fetch leads");
+        setLeads([]);
         return;
       }
 
       setLeads(data.leads || data);
     } catch (error) {
       setMessage("Server error");
+      setLeads([]);
       console.log(error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -34,7 +31,7 @@ const Leads = () => {
     fetchLeads();
   }, []);
 
-  if (loading) {
+  if (leads === null) {
     return (
       <div className="p-6">
         <h1 className="text-2xl font-bold">Loading leads...</h1>

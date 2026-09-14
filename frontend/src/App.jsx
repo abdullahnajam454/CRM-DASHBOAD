@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Leads from "./pages/Leads";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   return (
@@ -15,10 +16,10 @@ function App() {
         <Route path="/signup" element={<Signup />} />
 
         {/* Dashboard */}
-        <Route path="/dashboard" element={<Dashboard />} />
-
-        {/* Leads */}
-        <Route path="/leads" element={<Leads />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/leads" element={<Leads />} />
+        </Route>
 
         {/* Default */}
         <Route

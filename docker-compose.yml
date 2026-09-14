@@ -22,8 +22,10 @@ services:
       - /app/node_modules
 
     depends_on:
-      - mongo
-      - redis
+      mongo-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
 
     restart: unless-stopped
 
@@ -39,13 +41,33 @@ services:
       - rs0
       - --bind_ip_all
 
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
     ports:
-      - "27017:27017"
+      - "27018:27017"
 
     volumes:
       - mongo_data:/data/db
 
     restart: unless-stopped
+
+
+  mongo-init:
+    image: mongo:8
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+    command:
+      - mongosh
+      - --host
+      - mongo:27017
+      - --eval
+      - "try { const config = rs.conf(); if (config.members[0].host !== 'mongo:27017') { config.members[0].host = 'mongo:27017'; rs.reconfig(config, {force: true}) } } catch (error) { rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongo:27017'}]}) }"
 
 
   redis:

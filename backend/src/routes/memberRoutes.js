@@ -12,12 +12,14 @@ const {
 const {
     isLoggedIn
 } = require("../middleware/authMiddleware");
+const { requirePermission } = require("../middleware/permissionMiddleware");
 
 
 // CREATE MEMBER
 router.post(
     "/",
     isLoggedIn,
+    requirePermission("manageMembers"),
     create
 );
 
@@ -26,6 +28,7 @@ router.post(
 router.get(
     "/",
     isLoggedIn,
+    requirePermission("manageMembers"),
     getAll
 );
 
@@ -34,6 +37,7 @@ router.get(
 router.patch(
     "/:id",
     isLoggedIn,
+    requirePermission("manageMembers"),
     update
 );
 
@@ -42,6 +46,7 @@ router.patch(
 router.delete(
     "/:id",
     isLoggedIn,
+    requirePermission("manageMembers"),
     remove
 );
 

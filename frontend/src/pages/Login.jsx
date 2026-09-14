@@ -55,13 +55,14 @@ const Login = () => {
             if (!response.ok) {
 
                 throw new Error(
-                    data.error || "Login failed"
+                    data.error || data.message || "Login failed"
                 );
 
             }
 
 
             setMessage("Login successful!");
+            sessionStorage.setItem("crm-authenticated", "true");
 
             // Go to dashboard
             navigate("/dashboard");

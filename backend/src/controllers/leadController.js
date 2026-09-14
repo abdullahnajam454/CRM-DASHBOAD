@@ -135,7 +135,7 @@ const searchAndFilter = async (req, res) =>{
         if(cachedSearch){
             return res.status(200).json({
                 success : true,
-                result : JSON.parse(cachedSearch)
+                ...JSON.parse(cachedSearch)
             })
         }
         const result = await searchAndFilterLeads(req.organizationId, req.query)
@@ -173,7 +173,7 @@ try {
 
         return res.status(200).json({
             success: true,
-            stats : JSON.parse(cachedStats),
+            ...JSON.parse(cachedStats),
         })
     }
   
