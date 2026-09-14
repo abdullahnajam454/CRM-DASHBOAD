@@ -66,11 +66,6 @@ const leadSchema = new mongoose.Schema(
             min: 0
         },
 
-        owner: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true
-        },
         organizationId: {
             type : mongoose.Schema.Types.ObjectId,
             ref : "Organization",
