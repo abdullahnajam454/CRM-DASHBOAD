@@ -5,6 +5,9 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Leads from "./pages/Leads";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AppShell from "./components/layout/AppShell";
+import Members from "./pages/Members";
+import "./App.css";
 
 function App() {
   return (
@@ -17,8 +20,11 @@ function App() {
 
         {/* Dashboard */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/leads" element={<Leads />} />
+          <Route element={<AppShell />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/leads" element={<Leads />} />
+            <Route path="/members" element={<Members />} />
+          </Route>
         </Route>
 
         {/* Default */}

@@ -1,5 +1,6 @@
 const {registerUser} = require("../services/authService")
 const {loginUser} = require("../services/loginUser")
+const User = require("../models/User")
 
 const register = async (req, res)=>{
     try {
@@ -52,4 +53,35 @@ const login = async (req, res)=> {
     }
 }
 
-module.exports = {register, login}
+const logout = (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax"
+    });
+
+    return res.status(200).json({
+        message: "Logout successful",
+        success: true
+    });
+};
+
+const me = async (req, res) => {
+    const user = await User.findById(req.userId).select("name email organizationId createdAt");
+
+    if (!user) {
+        return res.status(401).json({
+            success: false,
+            message: "User not found"
+        });
+    }
+
+    return res.status(200).json({
+        success: true,
+        user,
+        role: req.role,
+        permissions: req.permissions
+    });
+};
+
+module.exports = {register, login, logout, me}
